@@ -7,11 +7,10 @@ import (
 )
 
 var (
-	fLaundry    bool
-	fOven       bool
-	fTea        bool
-	fPersistent bool
-	fQuiet      bool
+	fLaundry bool
+	fOven    bool
+	fTea     bool
+	fQuiet   bool
 )
 
 const usage = `timer, a general-purpose countdown timer.
@@ -22,7 +21,6 @@ Usage:
 
 Flags:
 
-    --persistent, -p   continue beeping until user hits return.
     --quiet, -q        do not send system beep.
     --tea              this is a tea timer.
     --oven             this is an oven timer.
@@ -36,8 +34,8 @@ Examples:
     # Run a tea timer for 3 minutes:
     timer --tea 3m
 
-    # Run a persistent laundry timer for 1 hour:
-    timer --laundry 1h -p
+    # Run a laundry timer for 1 hour:
+    timer --laundry 1h
 `
 
 func main() {
@@ -62,9 +60,7 @@ func main() {
 		case <-timer.C:
 			print()
 			alarm()
-			if fPersistent {
-				persistent()
-			}
+			persist()
 			return
 		case <-ticker.C:
 			countdown--
@@ -75,18 +71,18 @@ func main() {
 func alarm() {
 	if !fQuiet {
 		fmt.Print("\a")
-		time.Sleep(time.Millisecond * 200)
+		time.Sleep(time.Millisecond * 250)
 		fmt.Print("\a")
-		time.Sleep(time.Millisecond * 200)
+		time.Sleep(time.Millisecond * 250)
 		fmt.Print("\a")
 	}
 }
 
-func persistent() {
+func persist() {
 	fmt.Printf("\nHit return to end timer.")
 	done := make(chan struct{})
 	go func() {
-		ticker := time.NewTicker(time.Second * 3)
+		ticker := time.NewTicker(time.Second * 2)
 		for {
 			select {
 			case <-done:
@@ -122,8 +118,6 @@ func parseArgs() string {
 			fOven = true
 		case "--laundry", "-laundry":
 			fLaundry = true
-		case "-p", "-persistent", "--persistent":
-			fPersistent = true
 		case "-q", "--quiet", "-quiet":
 			fQuiet = true
 		default:
